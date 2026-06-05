@@ -1,0 +1,16 @@
+{
+  "name": "icon-agent",
+  "version": "1.0.0",
+  "description": "Icon search service using vector similarity",
+  "main": "src/server.js",
+  "scripts": {
+    "build-index": "node src/buildIndex.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.4.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "hnswlib-node": "^3.0.0"
+  }
+}
