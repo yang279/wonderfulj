@@ -11,10 +11,11 @@ if (process.env.HF_ENDPOINT) {
 
 const ICONS_PATH = path.resolve(__dirname, '../iconJson/icons.json');
 const INDEX_PATH = path.resolve(__dirname, '../iconJson/index.bin');
-const MODEL = 'Xenova/multilingual-e5-small';
+const MODEL = 'Xenova/bge-large-zh-v1.5';
+const EMBED_DIM = 1024;
 
 async function buildIndex() {
-  console.log('加载嵌入模型（首次运行会自动下载）...');
+  console.log('加载嵌入模型（首次运行会自动下载，模型约 1.3GB）...');
   const embedder = await pipeline('feature-extraction', MODEL);
 
   console.log('读取图标数据...');
@@ -23,7 +24,6 @@ async function buildIndex() {
 
   const texts = icons.map(i => `${i.name}: ${i.description}`);
   const allEmbeddings = [];
-  const EMBED_DIM = 384;
 
   for (let i = 0; i < texts.length; i++) {
     console.log(`处理第 ${i + 1}/${texts.length} 条: ${icons[i].id}`);

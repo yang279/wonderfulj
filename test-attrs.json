@@ -1,0 +1,17 @@
+{
+  "page": {
+    "title": "属性测试",
+    "sections": [
+      {
+        "name": "功能区",
+        "items": [
+          { "semantic": "icon", "label": "下载图标 24×24 细线" },
+          { "semantic": "icon", "label": "红色搜索图标 32px 填充" },
+          { "semantic": "icon", "label": "箭头" },
+          { "semantic": "icon", "label": "download" },
+          { "semantic": "text", "label": "普通文本" }
+        ]
+      }
+    ]
+  }
+}

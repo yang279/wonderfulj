@@ -35,7 +35,7 @@
           "depth": 4,
           "rect": { "x": 16, "y": 16, "w": 24, "h": 24 },
           "semantic": "icon",
-          "label": "返回上一页图标 24×24 细线",
+          "label": "下载图标 24×24 细线",
           "confidence": "high",
           "style": { "fontSize": "24px", "color": "#1A1A1AFF" }
         },
