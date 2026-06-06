@@ -1,8 +1,8 @@
 # iconAgent 接口文档
 
-## 1. 图标解析接口
+## 1. 图标解析接口（/resolve）
 
-递归遍历 JSON，查找所有 `semantic=icon` 的节点，用 `label` 字段作为关键词进行向量搜索，匹配到图标后在当前对象同级添加 `iconPath` 字段。
+递归遍历上传的 JSON 文件，查找所有 `semantic=icon` 的节点，用 AI 分析 `label` 描述提取图标关键词和样式属性，进行向量搜索匹配图标，匹配到的 SVG 经过属性修改后写入 `iconSvg` 字段。
 
 **URL:** `POST /resolve`
 
@@ -18,7 +18,15 @@
 
 - 必须是合法的 JSON 对象或数组
 - 需要解析的图标节点须包含 `semantic: "icon"` 和 `label` 字段
-- 支持任意层级嵌套，服务会递归遍历所有对象和数组
+- `label` 可包含图标名称描述，也可包含大小、颜色、线条风格等属性信息
+- 支持持任意层级嵌套，服务会递归遍历所有对象和数组
+
+**处理流程:**
+
+1. AI 分析 `label`，提取 `{name, size, color, borderSize, styled}` 结构化对象
+2. 用 `name` 作为关键词进行向量搜索，匹配图标
+3. 匹匹配到的 SVG + 屣性参数调用 `modifySvg()` 函数修改
+4. 将修改后的 SVG 字符串写入 `iconSvg` 字段
 
 **请求示例:**
 
@@ -34,27 +42,26 @@ curl -X POST http://localhost:3000/resolve -F "file=@example.json"
     "title": "测试页面",
     "sections": [
       {
-        "name": "导航区",
+        "name": "功能区",
         "items": [
-          { "semantic": "icon", "label": "搜索" },
+          { "semantic": "icon", "label": "下载图标 24×24 细线" },
+          { "semantic": "icon", "label": "红色搜索图标 32px 塽充" },
           { "semantic": "icon", "label": "箭头" }
         ]
-      },
-      {
-        "name": "内容区",
-        "nested": {
-          "deep": {
-            "buttons": [
-              { "semantic": "icon", "label": "下载" },
-              { "semantic": "text", "label": "普通文本" }
-            ]
-          }
-        }
       }
     ]
   }
 }
 ```
+
+**AI 解析结果示例:**
+
+| label | name | size | color | borderSize | styled |
+|------|------|------|-------|-----------|--------|
+| 下载图标 24×24 细线 | 下载 | 24 | | 细 | border |
+| 红色搜索图标 32px 填充 | 搜索 | 32 | 红色 | | filled |
+| 箭头 | 箭头 | | | | | |
+| download | 下载 | | | | | |
 
 **成功响应:**
 
@@ -65,22 +72,12 @@ curl -X POST http://localhost:3000/resolve -F "file=@example.json"
       "title": "测试页面",
       "sections": [
         {
-          "name": "导航区",
+          "name": "功能区",
           "items": [
-            { "semantic": "icon", "label": "搜索", "iconPath": "/icons/research.svg" },
-            { "semantic": "icon", "label": "箭头", "iconPath": "/icons/arrow-left.svg" }
+            { "semantic": "icon", "label": "下载图标 24×24 细线", "iconSvg": "<svg ...>...</svg>" },
+            { "semantic": "icon", "label": "红色搜索图标 32px 填充", "iconSvg": "<svg ...>...</svg>" },
+            { "semantic": "icon", "label": "箭头", "iconSvg": "<svg ...>...</svg>" }
           ]
-        },
-        {
-          "name": "内容区",
-          "nested": {
-            "deep": {
-              "buttons": [
-                { "semantic": "icon", "label": "下载", "iconPath": "/icons/download.svg" },
-                { "semantic": "text", "label": "普通文本" }
-              ]
-            }
-          }
         }
       ]
     }
@@ -102,16 +99,11 @@ curl -X POST http://localhost:3000/resolve -F "file=@example.json"
 }
 ```
 
-**说明:**
-
-- `iconPath` 为 SVG 文件的相对路径，通过 `http://localhost:3000/icons/{iconId}.svg` 可访问下载
-- 同名图标只会生成一次 SVG 文件，后续请求直接复用
-
 ---
 
-## 2. 关键词搜索接口
+## 2. 关键词搜索接口（/search）
 
-用关键词直接搜索图标库，返回最佳匹配及候选结果。
+用关键词搜索图标库，AI 分析关键词提取属性信息，匹配到的 SVG 经过属性修改后返回。
 
 **URL:** `POST /search`
 
@@ -121,12 +113,16 @@ curl -X POST http://localhost:3000/resolve -F "file=@example.json"
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| keyword | String | 是 | 搜索关键词，支持中文和英文 |
+| keyword | String | 是 | 搜索关键词，支持中文和英文，可包含大小、颜色等属性描述 |
+
+**处理流程:**
+
+与 `/resolve` 相同：AI 解析 → 向量搜索 → `modifySvg()` 修改 → 返回结果
 
 **请求示例:**
 
 ```bash
-curl -X POST http://localhost:3000/search -F "keyword=箭头"
+curl -X POST http://localhost:3000/search -F "keyword=下载图标 24×24 细线"
 ```
 
 **成功响应:**
@@ -135,17 +131,17 @@ curl -X POST http://localhost:3000/search -F "keyword=箭头"
 {
   "content": {
     "match": {
-      "id": "arrow-right",
-      "name": "arrow-right",
-      "description": "指向右侧的箭头，用于导航、前进、下一步等场景",
+      "id": "下载",
+      "name": "下载",
+      "description": "下载图标，向下箭头带横线，用于文件下载、保存到本地等场景",
       "svg": "<svg ...>...</svg>",
-      "score": 0.916
+      "score": 0.91
     },
     "candidates": [
-      { "id": "arrow-left", "name": "arrow-left", "description": "...", "score": 0.912 },
-      { "id": "arrow-up", "name": "arrow-up", "description": "...", "score": 0.91 },
-      { "id": "arrow-down", "name": "arrow-down", "description": "...", "score": 0.909 },
-      { "id": "upload", "name": "upload", "description": "...", "score": 0.899 }
+      { "id": "上箭头", "name": "上箭头", "description": "...", "score": 0.90 },
+      { "id": "下箭头", "name": "下箭头", "description": "...", "score": 0.89 },
+      { "id": "左箭头", "name": "左箭头", "description": "...", "score": 0.88 },
+      { "id": "右箭头", "name": "右箭头", "description": "...", "score": 0.87 }
     ]
   },
   "errorCode": 200,
@@ -154,17 +150,69 @@ curl -X POST http://localhost:3000/search -F "keyword=箭头"
 }
 ```
 
-**字段说明:**
+---
 
-| 字段 | 说明 |
-|------|------|
-| match | 最佳匹配结果，包含完整 SVG |
-| candidates | 其余 4 个候选结果（不含 SVG） |
-| score | 相似度分数，0~1，越高越匹配 |
+## 3. 图标查询接口（/icon）
+
+传入一段描述文字，AI 分析提取图标名称和样式属性，向量搜索匹配图标后返回修改后的 SVG 字符串。
+与 `/resolve` 功能类似但但入参和返回格式不同。
+
+**URL:** `POST /icon`
+
+**请求方式:** multipart/form-data
+
+**参数:**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| prompt | String | 是 | 描述文字，可包含图标名称、大小、颜色、线条风格等信息，支持中文和英文 |
+
+**处理流程:**
+
+1. AI 分析 `prompt`，提取 `{name, size, color, borderSize, styled}` 结构化对象
+2. 用 `name` 作为关键词进行向量搜索，匹配图标
+3. 拿匹配到的 SVG + 属性参数调用 `modifySvg()` 函数修改
+4. 返回修改后的 SVG 字符串
+
+**请求示例:**
+
+```bash
+curl -X POST http://localhost:3000/icon -F "prompt=下载图标 24×24 细线"
+```
+
+**AI 解析结果:**
+
+```json
+{ "name": "下载", "color": "", "size": "24", "borderSize": "细", "styled": "border" }
+```
+
+**成功响应:**
+
+```json
+{
+  "content": {
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" ...>...</svg>"
+  },
+  "errorCode": 200,
+  "errorMessage": "",
+  "success": true
+}
+```
+
+**失败响应:**
+
+```json
+{
+  "content": null,
+  "errorCode": 500,
+  "errorMessage": "错误描述",
+  "success": false
+}
+```
 
 ---
 
-## 3. 健康检查接口
+## 4. 健康检查接口（/health）
 
 **URL:** `GET /health`
 
@@ -178,7 +226,7 @@ curl http://localhost:3000/health
 
 ```json
 {
-  "content": { "status": "ok", "icons": 1000 },
+  "content": { "status": "ok", "icons": 1003 },
   "errorCode": 200,
   "errorMessage": "",
   "success": true
@@ -187,24 +235,9 @@ curl http://localhost:3000/health
 
 ---
 
-## 4. 图标文件访问
-
-匹配到的 SVG 文件可通过静态路径直接访问下载。
-
-**URL:** `GET /icons/{iconId}.svg`
-
-**示例:**
-
-```bash
-curl http://localhost:3000/icons/arrow-right.svg
-```
-
----
-
 ## 5. 通用响应格式
 
 所有接口统一返回以下结构：
-
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | content | Any/null | 成功时为结果数据，失败时为 null |
@@ -215,17 +248,53 @@ curl http://localhost:3000/icons/arrow-right.svg
 ---
 
 ## 6. 错误码
-
 | errorCode | 说明 |
 |-----------|------|
 | 200 | 成功 |
-| 400 | 参数错误（缺少文件、JSON 格式错误等） |
+| 400 | 参数错误（缺少文件/参数、JSON 格式错误等） |
 | 500 | 服务内部错误 |
 
 ---
 
-## 7. 启动与部署
+## 7. AI 属性解析格式
+AI 会从 label/prompt 中提取以下结构化对象：
+| 字段 | 说明 |
+|------|------|
+| name | 图标名称关键词（中文，2-4字），用于向量搜索。英文自动翻译成中文 |
+| size | 图标大小数字，如 "24"、"16"，无法识别则为空字符串 |
+| color | 颜色信息，如 "红色"、"#ff0000"，无法识别则为空字符串 |
+| borderSize | 线条粗细，如 "粗"、"细"、"2"，无法识别则为空字符串 |
+| styled | 线条风格："border"（线性/描边）或 "filled"（面性/填充），无法识别则为空字符串 |
 
+**解析示例:**
+| 输入 | name | size | color | borderSize | styled |
+|------|------|------|-------|-----------|--------|
+| download | 下载 | | | | |
+| 下载图标 24×24 细线 | 下载 | 24 | | 细 | border |
+| 红色搜索图标 32px 填充 | 搜索 | 32 | 红色 | | filled |
+| 箭头 | 箭头 | | | | |
+
+---
+
+## 8. SVG 修改函数（modifySvg）
+位于 `iconFunction/index.js`，用于根据属性修改 SVG 字符串。
+
+**函数签名:** `modifySvg(svg, size, color, borderSize, styled)`
+
+**参数:**
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| svg | String | 原始 SVG 字符串 |
+| size | String | 图标大小 |
+| color | String | 图标颜色 |
+| borderSize | String | 线条粗细 |
+| styled | String | 线条风格（border/filled） |
+
+**当前实现:** 空函数，原样返回传入的 SVG。待替换为真实修改函数。
+
+---
+
+## 9. 启动与部署
 ```bash
 # 安装依赖
 npm install
@@ -243,3 +312,11 @@ npm start
 |------|--------|------|
 | PORT | 3000 | 服务端口 |
 | HF_ENDPOINT | - | HuggingFace 镜像地址（国内建议设为 `https://hf-mirror.com`） |
+| DEEPSEEK_API_KEY | - | DeepSeek API Key，用于 AI 属性解析 |
+
+**依赖组件:**
+| 组件 | 说明 |
+|------|------|
+| @huggingface/transformers | 本地 embedding 模型（bge-large-zh-v1.5，1024维） |
+| hnswlib-node | HNSW 向量搜索 |
+| openai（DeepSeek） | AI 属性解析（deepseek-chat） |
