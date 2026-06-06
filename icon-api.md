@@ -31,7 +31,7 @@
 **请求示例:**
 
 ```bash
-curl -X POST http://localhost:3000/resolve -F "file=@example.json"
+curl -X POST http://localhost:3103/resolve -F "file=@example.json"
 ```
 
 **输入 JSON 示例:**
@@ -101,141 +101,7 @@ curl -X POST http://localhost:3000/resolve -F "file=@example.json"
 
 ---
 
-## 2. 关键词搜索接口（/search）
-
-用关键词搜索图标库，AI 分析关键词提取属性信息，匹配到的 SVG 经过属性修改后返回。
-
-**URL:** `POST /search`
-
-**请求方式:** multipart/form-data
-
-**参数:**
-
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| keyword | String | 是 | 搜索关键词，支持中文和英文，可包含大小、颜色等属性描述 |
-
-**处理流程:**
-
-与 `/resolve` 相同：AI 解析 → 向量搜索 → `modifySvg()` 修改 → 返回结果
-
-**请求示例:**
-
-```bash
-curl -X POST http://localhost:3000/search -F "keyword=下载图标 24×24 细线"
-```
-
-**成功响应:**
-
-```json
-{
-  "content": {
-    "match": {
-      "id": "下载",
-      "name": "下载",
-      "description": "下载图标，向下箭头带横线，用于文件下载、保存到本地等场景",
-      "svg": "<svg ...>...</svg>",
-      "score": 0.91
-    },
-    "candidates": [
-      { "id": "上箭头", "name": "上箭头", "description": "...", "score": 0.90 },
-      { "id": "下箭头", "name": "下箭头", "description": "...", "score": 0.89 },
-      { "id": "左箭头", "name": "左箭头", "description": "...", "score": 0.88 },
-      { "id": "右箭头", "name": "右箭头", "description": "...", "score": 0.87 }
-    ]
-  },
-  "errorCode": 200,
-  "errorMessage": "",
-  "success": true
-}
-```
-
----
-
-## 3. 图标查询接口（/icon）
-
-传入一段描述文字，AI 分析提取图标名称和样式属性，向量搜索匹配图标后返回修改后的 SVG 字符串。
-与 `/resolve` 功能类似但但入参和返回格式不同。
-
-**URL:** `POST /icon`
-
-**请求方式:** multipart/form-data
-
-**参数:**
-
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| prompt | String | 是 | 描述文字，可包含图标名称、大小、颜色、线条风格等信息，支持中文和英文 |
-
-**处理流程:**
-
-1. AI 分析 `prompt`，提取 `{name, size, color, borderSize, styled}` 结构化对象
-2. 用 `name` 作为关键词进行向量搜索，匹配图标
-3. 拿匹配到的 SVG + 属性参数调用 `modifySvg()` 函数修改
-4. 返回修改后的 SVG 字符串
-
-**请求示例:**
-
-```bash
-curl -X POST http://localhost:3000/icon -F "prompt=下载图标 24×24 细线"
-```
-
-**AI 解析结果:**
-
-```json
-{ "name": "下载", "color": "", "size": "24", "borderSize": "细", "styled": "border" }
-```
-
-**成功响应:**
-
-```json
-{
-  "content": {
-    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" ...>...</svg>"
-  },
-  "errorCode": 200,
-  "errorMessage": "",
-  "success": true
-}
-```
-
-**失败响应:**
-
-```json
-{
-  "content": null,
-  "errorCode": 500,
-  "errorMessage": "错误描述",
-  "success": false
-}
-```
-
----
-
-## 4. 健康检查接口（/health）
-
-**URL:** `GET /health`
-
-**请求示例:**
-
-```bash
-curl http://localhost:3000/health
-```
-
-**响应:**
-
-```json
-{
-  "content": { "status": "ok", "icons": 1003 },
-  "errorCode": 200,
-  "errorMessage": "",
-  "success": true
-}
-```
-
----
-
-## 5. 通用响应格式
+## 2. 通用响应格式
 
 所有接口统一返回以下结构：
 | 字段 | 类型 | 说明 |
@@ -247,7 +113,7 @@ curl http://localhost:3000/health
 
 ---
 
-## 6. 错误码
+## 3. 错误码
 | errorCode | 说明 |
 |-----------|------|
 | 200 | 成功 |
@@ -256,7 +122,7 @@ curl http://localhost:3000/health
 
 ---
 
-## 7. AI 属性解析格式
+## 4. AI 属性解析格式
 AI 会从 label/prompt 中提取以下结构化对象：
 | 字段 | 说明 |
 |------|------|
@@ -276,7 +142,7 @@ AI 会从 label/prompt 中提取以下结构化对象：
 
 ---
 
-## 8. SVG 修改函数（modifySvg）
+## 5. SVG 修改函数（modifySvg）
 位于 `iconFunction/index.js`，用于根据属性修改 SVG 字符串。
 
 **函数签名:** `modifySvg(svg, size, color, borderSize, styled)`
@@ -294,7 +160,7 @@ AI 会从 label/prompt 中提取以下结构化对象：
 
 ---
 
-## 9. 启动与部署
+## 6. 启动与部署
 ```bash
 # 安装依赖
 npm install
@@ -310,7 +176,7 @@ npm start
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
-| PORT | 3000 | 服务端口 |
+| PORT | 3103 | 服务端口 |
 | HF_ENDPOINT | - | HuggingFace 镜像地址（国内建议设为 `https://hf-mirror.com`） |
 | DEEPSEEK_API_KEY | - | DeepSeek API Key，用于 AI 属性解析 |
 
