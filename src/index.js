@@ -1,5 +1,7 @@
+require('dotenv').config();
+const http = require('http');
 const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
-const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
+const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
 const z = require('zod');
 const { findIcon } = require('./matcher');
 const modifySvg = require('../iconFunction');
@@ -46,8 +48,19 @@ server.tool(
   }
 );
 
-const transport = new StdioServerTransport();
-server.connect(transport).catch(err => {
+const transport = new StreamableHTTPServerTransport({
+  sessionIdGenerator: undefined,
+});
+
+server.connect(transport).then(() => {
+  const PORT = process.env.PORT || 3104;
+  const httpServer = http.createServer((req, res) => {
+    transport.handleRequest(req, res);
+  });
+  httpServer.listen(PORT, () => {
+    console.log(`iconMcp 服务已启动: http://localhost:${PORT}/mcp`);
+  });
+}).catch(err => {
   console.error('MCP 服务启动失败:', err);
   process.exit(1);
 });
