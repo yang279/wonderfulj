@@ -1,7 +1,7 @@
 require('dotenv').config();
-const http = require('http');
+const express = require('express');
 const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
-const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
+const { SSEServerTransport } = require('@modelcontextprotocol/sdk/server/sse.js');
 const z = require('zod');
 const { findIcon } = require('./matcher');
 const modifySvg = require('../iconFunction');
@@ -48,19 +48,28 @@ server.tool(
   }
 );
 
-const transport = new StreamableHTTPServerTransport({
-  sessionIdGenerator: undefined,
+const app = express();
+app.use(express.json());
+
+const transports = {};
+
+app.get('/sse', (req, res) => {
+  const transport = new SSEServerTransport('/messages', res);
+  transports[transport.sessionId] = transport;
+  server.connect(transport);
 });
 
-server.connect(transport).then(() => {
-  const PORT = process.env.PORT || 3104;
-  const httpServer = http.createServer((req, res) => {
-    transport.handleRequest(req, res);
-  });
-  httpServer.listen(PORT, () => {
-    console.log(`iconMcp 服务已启动: http://localhost:${PORT}/mcp`);
-  });
-}).catch(err => {
-  console.error('MCP 服务启动失败:', err);
-  process.exit(1);
+app.post('/messages', (req, res) => {
+  const sessionId = req.query.sessionId;
+  const transport = transports[sessionId];
+  if (transport) {
+    transport.handlePostMessage(req, res, req.body);
+  } else {
+    res.status(400).json({ error: 'No session found' });
+  }
+});
+
+const PORT = process.env.PORT || 3104;
+app.listen(PORT, () => {
+  console.log(`iconMcp SSE 服务已启动: http://localhost:${PORT}/sse`);
 });
