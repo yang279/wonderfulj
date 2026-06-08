@@ -4,21 +4,12 @@ const express = require('express');
 const path = require('path');
 const multer = require('multer');
 const OpenAI = require('openai');
-const { pipeline, env } = require('@huggingface/transformers');
-const VectorStore = require('./vectorStore');
 const modifySvg = require('../iconFunction');
-
-if (process.env.HF_ENDPOINT) {
-  env.remoteHost = process.env.HF_ENDPOINT;
-}
 
 const app = express();
 
 const UPLOAD_DIR = path.resolve(__dirname, '../uploads');
 const ICONS_PATH = path.resolve(__dirname, '../iconJson/icons.json');
-const INDEX_PATH = path.resolve(__dirname, '../iconJson/index.bin');
-const EMBED_MODEL = 'Xenova/bge-large-zh-v1.5';
-const BGE_QUERY_PREFIX = '为这个句子生成表示以用于检索相关文章：';
 const LLM_MODEL = 'deepseek-chat';
 const upload = multer({ dest: UPLOAD_DIR });
 
@@ -46,22 +37,13 @@ const LLM_SYSTEM_PROMPT = `你是一个图标描述分析器。用户会给你�
 
 let iconsData;
 let iconMap;
-let vectorStore;
-let embedder;
 
-async function init() {
-  console.log('加载嵌入模型...');
-  embedder = await pipeline('feature-extraction', EMBED_MODEL);
+const rawIcons = JSON.parse(fs.readFileSync(ICONS_PATH, 'utf-8'));
+iconsData = rawIcons;
+iconMap = new Map(iconsData.map(i => [i.id, i]));
 
-  iconsData = JSON.parse(fs.readFileSync(ICONS_PATH, 'utf-8'));
-  iconMap = new Map(iconsData.map(i => [i.id, i]));
-
-  vectorStore = new VectorStore(INDEX_PATH).load();
-  console.log(`已加载 ${iconsData.length} 个图标，HNSW 索引就绪`);
-
-  if (!fs.existsSync(UPLOAD_DIR)) {
-    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-  }
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
 function traverseAndResolve(obj, results) {
@@ -99,17 +81,37 @@ async function parseLabel(label) {
   }
 }
 
+function findIcon(keyword) {
+  const direct = iconMap.get(keyword);
+  if (direct) return direct;
+
+  let bestMatch = null;
+  let bestScore = 0;
+  for (const icon of iconsData) {
+    if (icon.name === keyword) {
+      return icon;
+    }
+    if (icon.name.includes(keyword) || keyword.includes(icon.name)) {
+      const score = Math.min(icon.name.length, keyword.length) / Math.max(icon.name.length, keyword.length);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = icon;
+      }
+    }
+  }
+  return bestMatch;
+}
+
 async function resolveIcon(iconObj) {
   const label = iconObj.label;
   const parsed = await parseLabel(label);
   console.log(`label: "${label}" → 解析:`, parsed);
 
-  const searchKeyword = BGE_QUERY_PREFIX + parsed.name;
-  const output = await embedder(searchKeyword, { pooling: 'mean', normalize: true });
-  const queryVec = Array.from(output.data);
-  const candidates = vectorStore.search(queryVec, 1);
-  const best = candidates[0];
-  const icon = iconMap.get(best.id);
+  const icon = findIcon(parsed.name);
+  if (!icon) {
+    console.log(`未找到匹配图标: "${parsed.name}"`);
+    return;
+  }
 
   const finalSvg = modifySvg(icon.svg, parsed.size, parsed.color, parsed.borderSize, parsed.styled);
   iconObj.iconSvg = finalSvg;
@@ -156,33 +158,25 @@ app.post('/resolve', upload.single('file'), async (req, res) => {
   }
 });
 
-app.post('/search', upload.none(), async (req, res) => {
+app.post('/icon', upload.none(), async (req, res) => {
   try {
-    const keyword = req.body.keyword;
-    if (!keyword) {
-      return res.json(errorResponse(400, '缺少 keyword 参数'));
+    const prompt = req.body.prompt;
+    if (!prompt) {
+      return res.json(errorResponse(400, '缺少 prompt 参数'));
     }
 
-    const parsed = await parseLabel(keyword);
-    const queryText = BGE_QUERY_PREFIX + parsed.name;
+    const parsed = await parseLabel(prompt);
+    const icon = findIcon(parsed.name);
 
-    const output = await embedder(queryText, { pooling: 'mean', normalize: true });
-    const queryVec = Array.from(output.data);
-    const candidates = vectorStore.search(queryVec, 5);
-    const best = candidates[0];
-    const icon = iconMap.get(best.id);
+    if (!icon) {
+      return res.json(errorResponse(404, `未找到匹配图标: "${parsed.name}"`));
+    }
 
     const finalSvg = modifySvg(icon.svg, parsed.size, parsed.color, parsed.borderSize, parsed.styled);
 
-    res.json(successResponse({
-      match: { id: icon.id, name: icon.name, description: icon.description, svg: finalSvg, score: best.score },
-      candidates: candidates.slice(1, 5).map(c => {
-        const ci = iconMap.get(c.id);
-        return { id: c.id, name: ci.name, description: ci.description, score: c.score };
-      }),
-    }));
+    res.json(successResponse({ svg: finalSvg }));
   } catch (err) {
-    console.error('搜索失败:', err.message);
+    console.error('图标查询失败:', err.message);
     res.json(errorResponse(500, err.message));
   }
 });
@@ -191,13 +185,8 @@ app.get('/health', (req, res) => {
   res.json(successResponse({ status: 'ok', icons: iconsData.length }));
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3103;
 
-init().then(() => {
-  app.listen(PORT, () => {
-    console.log(`iconAgent 服务已启动: http://localhost:${PORT}`);
-  });
-}).catch(err => {
-  console.error('初始化失败:', err);
-  process.exit(1);
+app.listen(PORT, () => {
+  console.log(`iconAgent 服务已启动: http://localhost:${PORT}`);
 });
