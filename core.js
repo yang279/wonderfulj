@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const OpenAI = require('openai');
-const modifySvg = require('./iconFunction');
+const modifySvg = require(path.resolve(__dirname, 'iconFunction'));
 
 const ICONS_PATH = path.resolve(__dirname, 'iconJson/icons.json');
 const COLORS_PATH = path.resolve(__dirname, 'colorConfig/colors.json');
