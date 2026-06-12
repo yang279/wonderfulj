@@ -37,7 +37,15 @@ const LLM_SYSTEM_PROMPT = `你是一个图标描述分析器。用户会给你�
 输入：下载图标 24×24 细线 → 输出：{"name":"下载","size":"24","style":"线性","colorKey":""}
 输入：红色搜索图标 48px 填充 → 输出：{"name":"搜索","size":"48","style":"面性","colorKey":"red"}
 输入：下载图标 12 红白双色线性 → 输出：{"name":"下载","size":"12","style":"线性双色","colorKey":"red,white"}
-输入：箭头 → 输出：{"name":"箭头","size":"","style":"","colorKey":""}`;
+输入：箭头 → 输出：{"name":"箭头","size":"","style":"","colorKey":""}
+
+批量模式：用户会给出多条描述，每条用换行分隔，每条前面带序号如"1. "。你需要输出一个JSON数组，每个元素对应一条描述的解析结果。
+示例：
+输入：
+1. 下载图标 24×24 细线
+2. 红色搜索图标 48px 填充
+输出：
+[{"name":"下载","size":"24","style":"线性","colorKey":""},{"name":"搜索","size":"48","style":"面性","colorKey":"red"}]`;
 
 let iconsData;
 let iconMap;
@@ -65,33 +73,50 @@ function traverseAndResolve(obj, results) {
   }
 }
 
-async function parseLabel(label) {
+async function batchParseLabels(labels) {
+  if (labels.length === 0) return [];
+  const prompt = labels.map((l, i) => `${i + 1}. ${l}`).join('\n');
+  const start = Date.now();
   try {
     const response = await llm.chat.completions.create({
       model: LLM_MODEL,
       messages: [
         { role: 'system', content: LLM_SYSTEM_PROMPT },
-        { role: 'user', content: label },
+        { role: 'user', content: prompt },
       ],
       temperature: 0.1,
-      max_tokens: 100,
+      max_tokens: 500,
     }, {
       extraBody: {
         thinking: { type: 'disabled' },
       },
     });
     const raw = response.choices[0].message.content.trim();
+    console.log(`AI批量解析耗时: ${Date.now() - start}ms`);
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+      return labels.map(() => parsed);
     } catch {
-      const match = raw.match(/\{[^}]+\}/);
-      if (match) return JSON.parse(match[0]);
-      return { name: raw, size: '', style: '', colorKey: '' };
+      const match = raw.match(/\[[\s\S]*\]/);
+      if (match) {
+        try {
+          const parsed = JSON.parse(match[0]);
+          if (Array.isArray(parsed)) return parsed;
+        } catch {}
+      }
+      console.log(`AI批量解析结果解析失败, 使用规则匹配`);
+      return labels.map(l => ruleBasedParse(l));
     }
   } catch (err) {
-    console.log(`AI解析失败(${err.message}), 使用规则匹配`);
-    return ruleBasedParse(label);
+    console.log(`AI批量解析失败(${err.message}), 使用规则匹配`);
+    return labels.map(l => ruleBasedParse(l));
   }
+}
+
+async function parseLabel(label) {
+  const result = await batchParseLabels([label]);
+  return result[0];
 }
 
 function ruleBasedParse(label) {
@@ -174,21 +199,23 @@ function findIcon(keyword) {
   return bestMatch;
 }
 
-async function resolveIcon(iconObj) {
-  const label = [iconObj.layerName, iconObj.layerDescription].filter(Boolean).join(' ');
-  const parsed = await parseLabel(label);
-  console.log(`label: "${label}" → 解析:`, parsed);
+function resolveIcons(iconNodes, parsedResults) {
+  for (let i = 0; i < iconNodes.length; i++) {
+    const iconObj = iconNodes[i];
+    const parsed = parsedResults[i];
+    const label = [iconObj.layerName, iconObj.layerDescription].filter(Boolean).join(' ');
+    console.log(`label: "${label}" → 解析:`, parsed);
 
-  const icon = findIcon(parsed.name);
-  if (!icon) {
-    console.log(`未找到匹配图标: "${parsed.name}"`);
-    return;
+    const icon = findIcon(parsed.name);
+    if (!icon) {
+      console.log(`未找到匹配图标: "${parsed.name}"`);
+      continue;
+    }
+
+    const colorValue = resolveColor(parsed.colorKey, parsed.style);
+    const stroke = parsed.style ? (strokeConfig[parsed.style]?.[parsed.size] || '') : '';
+    iconObj.iconSvg = modifySvg(icon.svg, parsed.size, colorValue, stroke, parsed.style);
   }
-
-  const colorValue = resolveColor(parsed.colorKey, parsed.style);
-  const stroke = parsed.style ? (strokeConfig[parsed.style]?.[parsed.size] || '') : '';
-  const finalSvg = modifySvg(icon.svg, parsed.size, colorValue, stroke, parsed.style);
-  iconObj.iconSvg = finalSvg;
 }
 
 function successResponse(content) {
@@ -217,8 +244,10 @@ app.post('/resolve', upload.single('file'), async (req, res) => {
     const iconNodes = [];
     traverseAndResolve(data, iconNodes);
 
-    for (const node of iconNodes) {
-      await resolveIcon(node);
+    if (iconNodes.length > 0) {
+      const labels = iconNodes.map(node => [node.layerName, node.layerDescription].filter(Boolean).join(' '));
+      const parsedResults = await batchParseLabels(labels);
+      resolveIcons(iconNodes, parsedResults);
     }
 
     res.json(successResponse(data));

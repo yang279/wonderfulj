@@ -1,435 +1,163 @@
 {
-  "nid": 1,
+  "nid": 3,
   "tag": "div",
-  "depth": 2,
   "rect": { "x": 0, "y": 0, "w": 375, "h": 812 },
-  "semantic": "container",
-  "label": "登录页根容器",
-  "confidence": "high",
-  "style": {
-    "backgroundColor": "#F5F5F5FF"
-  },
+  "id": "app",
+  "class": "page page--login",
+  "layerType": "frame",
+  "layerName": "登录页根容器",
+  "layerDescription": "登录页面的根布局容器，纵向排列导航栏、表单和底部标签栏",
+  "style": { "display": "flex", "flexDirection": "column", "backgroundColor": "rgb(245,245,245)" },
   "children": [
 
     {
-      "nid": 2,
-      "tag": "div",
-      "depth": 3,
+      "nid": 4,
+      "tag": "header",
       "rect": { "x": 0, "y": 0, "w": 375, "h": 56, "fixed": true },
-      "semantic": "navbar",
-      "label": "顶部导航栏",
-      "confidence": "high",
+      "class": "navbar",
+      "layerType": "frame",
+      "layerName": "顶部导航栏",
+      "layerDescription": "固定在页面顶部的导航栏，包含返回图标和页面标题",
       "style": {
         "display": "flex",
         "alignItems": "center",
         "position": "fixed",
         "top": "0px",
         "zIndex": "100",
-        "backgroundColor": "#FFFFFFFF",
-        "boxShadow": "0px 1px 0px rgba(0,0,0,0.06)"
+        "backgroundColor": "rgb(255,255,255)",
+        "boxShadow": "0px 1px 0px rgba(0,0,0,0.08)"
       },
       "children": [
         {
-          "nid": 3,
-          "tag": "div",
-          "depth": 4,
+          "nid": 5,
+          "tag": "span",
           "rect": { "x": 16, "y": 16, "w": 24, "h": 24 },
-          "semantic": "icon",
-          "label": "下载图标 24×24 细线",
-          "confidence": "high",
-          "style": { "fontSize": "24px", "color": "#1A1A1AFF" }
+          "class": "icon icon--back",
+          "layerType": "icon",
+          "layerName": "下载图标",
+          "layerDescription": "点击后触发下载功能的图标，24×24 细线",
+          "style": { "fontSize": "24px" }
         },
         {
-          "nid": 4,
-          "tag": "span",
-          "depth": 4,
-          "rect": { "x": 128, "y": 14, "w": 119, "h": 28 },
-          "text": "登录",
-          "semantic": "heading",
-          "label": "导航栏标题文字",
-          "confidence": "high",
-          "style": {
-            "fontSize": "18px",
-            "fontWeight": "600",
-            "color": "#1A1A1AFF",
-            "textAlign": "center",
-            "lineHeight": "28px"
-          }
-        }
-      ]
-    },
-
-    {
-      "nid": 5,
-      "tag": "div",
-      "depth": 3,
-      "rect": { "x": 0, "y": 56, "w": 375, "h": 140 },
-      "semantic": "container",
-      "label": "Logo 展示区",
-      "confidence": "high",
-      "style": {
-        "display": "flex",
-        "flexDirection": "column",
-        "alignItems": "center",
-        "justifyContent": "center",
-        "backgroundColor": "#FFFFFFFF"
-      },
-      "children": [
-        {
           "nid": 6,
-          "tag": "div",
-          "depth": 4,
-          "rect": { "x": 154, "y": 72, "w": 68, "h": 68 },
-          "semantic": "container",
-          "label": "Logo 圆形背景容器",
-          "confidence": "high",
-          "style": {
-            "display": "flex",
-            "alignItems": "center",
-            "justifyContent": "center",
-            "borderRadius": "50%",
-            "backgroundColor": "#3478F6FF"
-          },
-          "children": [
-            {
-              "nid": 7,
-              "tag": "div",
-              "depth": 5,
-              "rect": { "x": 167, "y": 85, "w": 42, "h": 42 },
-              "semantic": "icon",
-              "label": "应用 Logo 图标 42×42 中等",
-              "confidence": "high",
-              "style": { "color": "#FFFFFFFF" }
-            }
-          ]
+          "tag": "h1",
+          "rect": { "x": 130, "y": 12, "w": 115, "h": 32 },
+          "text": "登录",
+          "layerType": "text",
+          "layerName": "页面标题",
+          "layerDescription": "显示当前页面名称'登录'的标题文字",
+          "style": { "fontFamily": "PingFang SC", "fontSize": "18px", "fontWeight": "600", "textAlign": "center" }
         }
       ]
     },
 
     {
-      "nid": 8,
-      "tag": "div",
-      "depth": 3,
-      "rect": { "x": 20, "y": 216, "w": 335, "h": 300 },
-      "semantic": "card",
-      "label": "登录表单卡片",
-      "confidence": "high",
+      "nid": 10,
+      "tag": "form",
+      "rect": { "x": 20, "y": 80, "w": 335, "h": 360 },
+      "class": "login-form",
+      "layerType": "frame",
+      "layerName": "登录表单",
+      "layerDescription": "包含用户名输入框、密码输入框和登录按钮的表单区域",
       "style": {
         "display": "flex",
         "flexDirection": "column",
         "gap": "16px",
-        "backgroundColor": "#FFFFFFFF",
+        "backgroundColor": "rgb(255,255,255)",
         "borderRadius": "16px",
         "boxShadow": "0px 8px 24px rgba(0,0,0,0.08)"
       },
       "children": [
 
         {
-          "nid": 9,
-          "tag": "span",
-          "depth": 4,
-          "rect": { "x": 40, "y": 248, "w": 295, "h": 32 },
-          "text": "欢迎登录",
-          "semantic": "heading",
-          "label": "登录页主标题",
-          "confidence": "high",
-          "style": {
-            "fontSize": "22px",
-            "fontWeight": "700",
-            "color": "#1A1A1AFF",
-            "lineHeight": "32px"
-          }
-        },
-
-        {
-          "nid": 10,
+          "nid": 11,
           "tag": "div",
-          "depth": 4,
-          "rect": { "x": 40, "y": 300, "w": 295, "h": 48 },
-          "semantic": "container",
-          "label": "用户名输入行（图标+输入框）",
-          "confidence": "high",
+          "rect": { "x": 20, "y": 80, "w": 335, "h": 56 },
+          "class": "input-field",
+          "layerType": "component",
+          "layerName": "用户名输入框",
+          "layerDescription": "供用户输入账号名称的文本输入框组件",
           "style": {
             "display": "flex",
             "alignItems": "center",
-            "gap": "10px",
-            "border": "1px solid #E5E5E5FF",
-            "borderRadius": "10px",
-            "backgroundColor": "#F8F8F8FF"
+            "border": "1px solid rgb(229,229,229)",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(250,250,250)"
           },
           "children": [
-            {
-              "nid": 11,
-              "tag": "div",
-              "depth": 5,
-              "rect": { "x": 54, "y": 314, "w": 20, "h": 20 },
-              "semantic": "icon",
-              "label": "用户头像/账号图标 20×20 中等",
-              "confidence": "high",
-              "style": { "color": "#999999FF" }
-            },
             {
               "nid": 12,
-              "tag": "span",
-              "depth": 5,
-              "rect": { "x": 84, "y": 300, "w": 239, "h": 48 },
-              "text": "请输入用户名",
-              "semantic": "input",
-              "label": "用户名输入框",
-              "confidence": "high",
-              "style": {
-                "fontSize": "15px",
-                "color": "#CCCCCCFF"
-              }
+              "tag": "input",
+              "rect": { "x": 36, "y": 96, "w": 303, "h": 24 },
+              "attrs": { "placeholder": "请输入用户名" },
+              "type": "text",
+              "layerType": "component",
+              "layerName": "用户名 input",
+              "layerDescription": "用户名输入框的原生 input 元素，placeholder 提示'请输入用户名'",
+              "style": { "fontFamily": "PingFang SC", "fontSize": "16px", "color": "rgb(26,26,26)" }
             }
           ]
         },
 
-        {
-          "nid": 13,
-          "tag": "div",
-          "depth": 4,
-          "rect": { "x": 40, "y": 364, "w": 295, "h": 48 },
-          "semantic": "container",
-          "label": "密码输入行（图标+输入框+眼睛图标）",
-          "confidence": "high",
-          "style": {
-            "display": "flex",
-            "alignItems": "center",
-            "gap": "10px",
-            "border": "1px solid #E5E5E5FF",
-            "borderRadius": "10px",
-            "backgroundColor": "#F8F8F8FF"
-          },
-          "children": [
-            {
-              "nid": 14,
-              "tag": "div",
-              "depth": 5,
-              "rect": { "x": 54, "y": 378, "w": 20, "h": 20 },
-              "semantic": "icon",
-              "label": "密码锁图标 20×20 中等",
-              "confidence": "high",
-              "style": { "color": "#999999FF" }
-            },
-            {
-              "nid": 15,
-              "tag": "span",
-              "depth": 5,
-              "rect": { "x": 84, "y": 364, "w": 183, "h": 48 },
-              "text": "请输入密码",
-              "semantic": "input",
-              "label": "密码输入框",
-              "confidence": "high",
-              "style": {
-                "fontSize": "15px",
-                "color": "#CCCCCCFF"
-              }
-            },
-            {
-              "nid": 16,
-              "tag": "div",
-              "depth": 5,
-              "rect": { "x": 315, "y": 378, "w": 20, "h": 20 },
-              "semantic": "icon",
-              "label": "密码显示/隐藏切换眼睛图标 20×20 细线",
-              "confidence": "high",
-              "style": { "color": "#CCCCCCFF" }
-            }
-          ]
-        },
-
-        {
-          "nid": 17,
-          "tag": "div",
-          "depth": 4,
-          "rect": { "x": 40, "y": 436, "w": 295, "h": 48 },
-          "semantic": "button",
-          "label": "登录按钮（主操作，蓝色）",
-          "confidence": "high",
-          "style": {
-            "display": "flex",
-            "alignItems": "center",
-            "justifyContent": "center",
-            "backgroundColor": "#3478F6FF",
-            "borderRadius": "10px",
-            "fontSize": "16px",
-            "fontWeight": "600",
-            "color": "#FFFFFFFF"
-          }
-        }
-
-      ]
-    },
-
-    {
-      "nid": 18,
-      "tag": "div",
-      "depth": 3,
-      "rect": { "x": 20, "y": 536, "w": 335, "h": 24 },
-      "semantic": "container",
-      "label": "其他登录方式分割线区",
-      "confidence": "high",
-      "style": {
-        "display": "flex",
-        "alignItems": "center",
-        "gap": "12px"
-      },
-      "children": [
-        {
-          "nid": 19,
-          "tag": "div",
-          "depth": 4,
-          "rect": { "x": 20, "y": 547, "w": 100, "h": 1 },
-          "semantic": "divider",
-          "label": "分割线左段",
-          "confidence": "high",
-          "style": { "backgroundColor": "#E5E5E5FF" }
-        },
         {
           "nid": 20,
-          "tag": "span",
-          "depth": 4,
-          "rect": { "x": 132, "y": 536, "w": 111, "h": 24 },
-          "text": "其他方式登录",
-          "semantic": "text",
-          "label": "登录方式分割文字",
-          "confidence": "high",
+          "tag": "button",
+          "rect": { "x": 20, "y": 260, "w": 335, "h": 48 },
+          "class": "btn btn--primary",
+          "text": "登录",
+          "layerType": "component",
+          "layerName": "主登录按钮",
+          "layerDescription": "点击后提交表单并执行登录操作的主要操作按钮",
           "style": {
-            "fontSize": "13px",
-            "color": "#999999FF",
-            "textAlign": "center"
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "backgroundColor": "rgb(52,120,246)",
+            "borderRadius": "8px",
+            "fontSize": "16px",
+            "fontWeight": "600",
+            "color": "rgb(255,255,255)"
           }
         },
+
         {
           "nid": 21,
-          "tag": "div",
-          "depth": 4,
-          "rect": { "x": 255, "y": 547, "w": 100, "h": 1 },
-          "semantic": "divider",
-          "label": "分割线右段",
-          "confidence": "high",
-          "style": { "backgroundColor": "#E5E5E5FF" }
+          "tag": "img",
+          "rect": { "x": 0, "y": 0, "w": 0, "h": 0 },
+          "src": "/icons/eye.svg",
+          "alt": "",
+          "naturalWidth": 24,
+          "naturalHeight": 24,
+          "loaded": true,
+          "passthrough": true,
+          "layerType": "icon",
+          "layerName": "密码可见图标",
+          "layerDescription": "点击后切换密码输入框明文/密文显示状态的图标",
+          "layerConfidence": "low",
+          "style": {}
         }
+
       ]
     },
 
     {
-      "nid": 22,
-      "tag": "div",
-      "depth": 3,
-      "rect": { "x": 80, "y": 580, "w": 215, "h": 48 },
-      "semantic": "container",
-      "label": "社交登录图标行",
-      "confidence": "high",
+      "nid": 30,
+      "tag": "nav",
+      "rect": { "x": 0, "y": 746, "w": 375, "h": 66, "fixed": true },
+      "class": "tabbar",
+      "layerType": "frame",
+      "layerName": "底部标签栏",
+      "layerDescription": "固定在页面底部的导航标签栏，用于在多个主页面之间切换",
       "style": {
         "display": "flex",
+        "justifyContent": "space-around",
         "alignItems": "center",
-        "justifyContent": "space-between"
-      },
-      "children": [
-        {
-          "nid": 23,
-          "tag": "div",
-          "depth": 4,
-          "rect": { "x": 80, "y": 580, "w": 48, "h": 48 },
-          "semantic": "icon",
-          "label": "微信登录图标 48×48 中等",
-          "confidence": "high",
-          "style": {
-            "borderRadius": "50%",
-            "backgroundColor": "#07C160FF",
-            "color": "#FFFFFFFF"
-          }
-        },
-        {
-          "nid": 24,
-          "tag": "div",
-          "depth": 4,
-          "rect": { "x": 164, "y": 580, "w": 48, "h": 48 },
-          "semantic": "icon",
-          "label": "支付宝登录图标 48×48 中等",
-          "confidence": "high",
-          "style": {
-            "borderRadius": "50%",
-            "backgroundColor": "#1677FFFF",
-            "color": "#FFFFFFFF"
-          }
-        },
-        {
-          "nid": 25,
-          "tag": "div",
-          "depth": 4,
-          "rect": { "x": 248, "y": 580, "w": 48, "h": 48 },
-          "semantic": "icon",
-          "label": "Apple 登录图标 48×48 细线",
-          "confidence": "high",
-          "style": {
-            "borderRadius": "50%",
-            "backgroundColor": "#1A1A1AFF",
-            "color": "#FFFFFFFF"
-          }
-        }
-      ]
-    },
-
-    {
-      "nid": 26,
-      "tag": "div",
-      "depth": 3,
-      "rect": { "x": 0, "y": 652, "w": 375, "h": 40 },
-      "semantic": "container",
-      "label": "底部辅助链接区",
-      "confidence": "high",
-      "style": {
-        "display": "flex",
-        "alignItems": "center",
-        "justifyContent": "center",
-        "gap": "12px"
-      },
-      "children": [
-        {
-          "nid": 27,
-          "tag": "span",
-          "depth": 4,
-          "rect": { "x": 100, "y": 662, "w": 84, "h": 20 },
-          "text": "忘记密码？",
-          "semantic": "text",
-          "label": "忘记密码跳转链接",
-          "confidence": "high",
-          "style": {
-            "fontSize": "14px",
-            "color": "#3478F6FF"
-          }
-        },
-        {
-          "nid": 28,
-          "tag": "div",
-          "depth": 4,
-          "rect": { "x": 196, "y": 670, "w": 4, "h": 4 },
-          "semantic": "divider",
-          "label": "链接间隔点",
-          "confidence": "high",
-          "style": {
-            "borderRadius": "50%",
-            "backgroundColor": "#CCCCCCFF"
-          }
-        },
-        {
-          "nid": 29,
-          "tag": "span",
-          "depth": 4,
-          "rect": { "x": 212, "y": 662, "w": 64, "h": 20 },
-          "text": "立即注册",
-          "semantic": "text",
-          "label": "立即注册跳转链接",
-          "confidence": "high",
-          "style": {
-            "fontSize": "14px",
-            "color": "#3478F6FF"
-          }
-        }
-      ]
+        "position": "fixed",
+        "bottom": "0px",
+        "zIndex": "100",
+        "backgroundColor": "rgb(255,255,255)",
+        "boxShadow": "0px -1px 0px rgba(0,0,0,0.06)"
+      }
     }
 
   ]

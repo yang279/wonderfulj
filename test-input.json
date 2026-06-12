@@ -5,8 +5,8 @@
       {
         "name": "导航区",
         "items": [
-          { "semantic": "icon", "label": "搜索" },
-          { "semantic": "icon", "label": "箭头" }
+          { "layerType": "icon", "layerName": "搜索图标", "layerDescription": "24×24 线性" },
+          { "layerType": "icon", "layerName": "箭头", "layerDescription": "" }
         ]
       },
       {
@@ -14,9 +14,9 @@
         "nested": {
           "deep": {
             "buttons": [
-              { "semantic": "icon", "label": "下载" },
-              { "semantic": "icon", "label": "医疗" },
-              { "semantic": "text", "label": "普通文本" }
+              { "layerType": "icon", "layerName": "下载图标", "layerDescription": "48×48 面性 红色" },
+              { "layerType": "icon", "layerName": "医疗", "layerDescription": "" },
+              { "layerType": "text", "layerName": "普通文本", "layerDescription": "" }
             ]
           }
         }
