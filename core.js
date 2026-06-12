@@ -54,7 +54,7 @@ function traverseAndResolve(obj, results) {
       traverseAndResolve(item, results);
     }
   } else if (obj && typeof obj === 'object') {
-    if (obj.semantic === 'icon' && obj.label) {
+    if (obj.layerType === 'icon' && (obj.layerName || obj.layerDescription)) {
       results.push(obj);
     }
     if (obj.children && Array.isArray(obj.children)) {
@@ -173,7 +173,7 @@ function findIcon(keyword) {
 }
 
 async function resolveIcon(iconObj) {
-  const label = iconObj.label;
+  const label = [iconObj.layerName, iconObj.layerDescription].filter(Boolean).join(' ');
   const parsed = await parseLabel(label);
   console.log(`label: "${label}" → 解析:`, parsed);
 
