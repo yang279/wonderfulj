@@ -17,7 +17,17 @@ function findIcon(keyword, attempt) {
     }
     if (icon.name.includes(keyword) || keyword.includes(icon.name)) {
       const score = Math.min(icon.name.length, keyword.length) / Math.max(icon.name.length, keyword.length);
-      matches.push({ icon, score });
+      matches.push({ icon, score, field: 'name' });
+      continue;
+    }
+    if (icon.description && (icon.description.includes(keyword) || keyword.includes(icon.description))) {
+      const score = Math.min(icon.description.length, keyword.length) / Math.max(icon.description.length, keyword.length) * 0.8;
+      matches.push({ icon, score, field: 'description' });
+      continue;
+    }
+    if (icon.englishName && (icon.englishName === keyword || icon.englishName.includes(keyword) || keyword.includes(icon.englishName))) {
+      const score = Math.min(icon.englishName.length, keyword.length) / Math.max(icon.englishName.length, keyword.length) * 0.6;
+      matches.push({ icon, score, field: 'englishName' });
     }
   }
 
@@ -25,8 +35,8 @@ function findIcon(keyword, attempt) {
 
   matches.sort((a, b) => b.score - a.score);
 
-  const idx = Math.min(attempt - 1, matches.length - 1);
-  return { icon: matches[idx].icon, exact: false, totalMatches: matches.length, attempt };
+  const idx = Math.min((attempt || 1) - 1, matches.length - 1);
+  return { icon: matches[idx].icon, exact: false, totalMatches: matches.length, attempt: attempt || 1 };
 }
 
 module.exports = { findIcon, iconsData };
