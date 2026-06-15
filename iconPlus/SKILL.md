@@ -1,9 +1,9 @@
 ---
-name: icon-get
+name: iconPlus
 description: 获取图标SVG。当用户需要图标、icon、SVG图标、寻找图标、根据描述获取图标时使用此skill。支持单个和批量获取。通过iconMcp服务的REST接口查询配置、颜色和SVG。
 ---
 
-# icon-get skill
+# iconPlus skill
 
 根据图标描述或关键词获取SVG图标，支持单个和批量。
 
